@@ -44,7 +44,7 @@ contract propertyMarketplace {
     mapping(uint256 => property) public Property;
     mapping(uint256 => investor) public Investor;
 
-    mapping(address=>mapping(uint=>bool)) public hasUserInvestedInThisProperty;
+    mapping(address => mapping(uint256 => bool)) public hasUserInvestedInThisProperty;
     mapping(address => mapping(uint256 => uint256)) public AmountInvestedInPropertyByUser;
     mapping(address => uint256) public investorId;
     mapping(address => mapping(uint256 => address)) public UserPropertyToken;
@@ -75,8 +75,8 @@ contract propertyMarketplace {
         Property[numOfPropertiesOnSelling].token = address(token);
         Property[numOfPropertiesOnSelling].owner = msg.sender;
         Property[numOfPropertiesOnSelling].propertyCost = value;
-         Property[numOfPropertiesOnSelling].TotalAmountInvested = 0;
-          Property[numOfPropertiesOnSelling].numOfinvestors = 0;
+        Property[numOfPropertiesOnSelling].TotalAmountInvested = 0;
+        Property[numOfPropertiesOnSelling].numOfinvestors = 0;
         bool success;
         if (ERC20(token).balanceOf(msg.sender) > 0) {
             success = true;
@@ -88,31 +88,29 @@ contract propertyMarketplace {
         uint256 investedAmt = AmountInvestedInPropertyByUser[msg.sender][_property];
         // uint256 totalAmountInvestedInthisProperty = TotalAmountInvested(_property);
         uint256 AmountUserCanInvest = AmountUserCanInvestInProperty(_property);
-        uint PropertyCost = propertyCost(_property);
+        uint256 PropertyCost = propertyCost(_property);
         // require(amount < PropertyCost, " amount is greater than property cost");
         // require(
         //     investedAmt + amount <= PropertyCost,
         //     " previous invested amount by user + amount is greater than property cost"
         // );
         // require(amount <= AmountUserCanInvest,"please check how much you can invest");
-        if(hasUserInvestedInThisProperty[msg.sender][_property] == false)
-        {
-            investorId[msg.sender] = Property[_property].numOfinvestors +1;
+        if (hasUserInvestedInThisProperty[msg.sender][_property] == false) {
+            investorId[msg.sender] = Property[_property].numOfinvestors + 1;
         }
 
-        uint256 a = investorId[msg.sender]  ;
-        if( hasUserInvestedInThisProperty[msg.sender][_property] == false){ 
-        
-        Property[_property].numOfinvestors++;
-        Investor[a].investorAddress = msg.sender;
-        Investor[a].propertiesInvested.push(_property);
+        uint256 a = investorId[msg.sender];
+        if (hasUserInvestedInThisProperty[msg.sender][_property] == false) {
+            Property[_property].numOfinvestors++;
+            Investor[a].investorAddress = msg.sender;
+            Investor[a].propertiesInvested.push(_property);
         }
         hasUserInvestedInThisProperty[msg.sender][_property] = true;
         AmountInvestedInPropertyByUser[msg.sender][_property] += amount;
         Property[_property].TotalAmountInvested += amount;
         // ERC20(TokenForInvesting).approve(address(this),amount);
         bool success = ERC20(TokenForInvesting).transferFrom(msg.sender, address(this), amount);
-        if(!success) {
+        if (!success) {
             success = false;
         }
         return (TokenForInvesting, a, amount, success);
@@ -122,19 +120,18 @@ contract propertyMarketplace {
         return ERC20(TokenForInvesting).balanceOf(address(this));
     }
 
-    function AmountUserCanInvestInProperty(uint _propertyId) public view returns (uint){
-        uint a = TotalAmountInvested(_propertyId);
-        uint b = propertyCost(_propertyId);
-        
+    function AmountUserCanInvestInProperty(uint256 _propertyId) public view returns (uint256) {
+        uint256 a = TotalAmountInvested(_propertyId);
+        uint256 b = propertyCost(_propertyId);
+
         return b - a;
-        
-        
     }
 
-    function TotalAmountInvested (uint _propertyId) internal view returns(uint) {
+    function TotalAmountInvested(uint256 _propertyId) internal view returns (uint256) {
         return Property[_propertyId].TotalAmountInvested;
     }
-    function propertyCost (uint _propertyId) internal view returns(uint) {
+
+    function propertyCost(uint256 _propertyId) internal view returns (uint256) {
         return Property[_propertyId].propertyCost;
     }
 
@@ -143,7 +140,10 @@ contract propertyMarketplace {
     }
 
     function transferFundsToInvestors(address _investor, uint256 _property) public returns (uint256, bool, address) {
-        require(hasUserInvestedInThisProperty[_investor][_property] == true,"this address has not invested in this property");
+        require(
+            hasUserInvestedInThisProperty[_investor][_property] == true,
+            "this address has not invested in this property"
+        );
         uint256 amount = AmountInvestedInPropertyByUser[_investor][_property];
         address propertyTokenAddress = Property[_property].token;
         uint256 a;
@@ -169,8 +169,7 @@ contract propertyMarketplace {
         return Property[id];
     }
 
-    function amountInvestedInPropertyByUser(address _investor, uint _property) public view returns (uint){
+    function amountInvestedInPropertyByUser(address _investor, uint256 _property) public view returns (uint256) {
         return AmountInvestedInPropertyByUser[_investor][_property];
-
     }
 }
